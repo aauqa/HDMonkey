@@ -70,10 +70,10 @@ csv()
     return data;
 })
 .on('data',function(data,index){
-//    console.log('#'+index+' '+JSON.stringify(data));
+/*    console.log('#'+index+' '+JSON.stringify(data));
         console.log(data["TicketID"] + " -- " + data["Assign"] + " -- " + data["DateModified"]);
         console.log(data["UserID"] + " -- " + data["StudentID"] + " -- " + data["Info"]);
-        console.log("||___________________________________________________||");
+        console.log("||___________________________________________________||"); */
         ticketHolder.push(data)
 })
 .on('end',function(count){

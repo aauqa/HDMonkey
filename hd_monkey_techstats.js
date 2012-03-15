@@ -2,7 +2,7 @@ var httpResp = "";
 var http = require('http');
 var url = require('url');
 var csv = require('csv');
-var serverURL = "10.3.33.108";
+var serverURL = "127.0.0.1";
 var serverPort = "1338";
 var ticketHolder = new Array();
 
@@ -227,7 +227,7 @@ function checkByDate(checkdate) {
 
 
 csv()
-.fromPath(__dirname+'/current_data.csv',{
+.fromPath(__dirname+'/data.csv',{
     columns: true
 })
 .transform(function(data){

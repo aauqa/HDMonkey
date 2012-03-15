@@ -24,13 +24,13 @@ http.createServer(function (req, res) {
 	 for (record in ticketHolder) {
 	 //	console.log(ticketHolder[record]["UserID"] + " " + query["userID"]);
 		 if (ticketHolder[record]["UserID"] === query["userID"]) {
-			 console.log("TRUE");
+			 //console.log("TRUE");
 			 ticketCounter = ticketCounter + 1;
 			 responseHolder[ticketCounter] = {date: ticketHolder[record]["OpenDate"], link: '<a href="http://discussion.academyart.edu/admin/editRecord.do?triggerName=editRecord&lo_record=2-' + ticketHolder[record]["TicketID"] + '">' + ticketHolder[record]["TicketID"] + '</a> ' + ticketHolder[record]["OpenDate"] + " -- " + ticketHolder[record]["Description"] + '<br />\n'};
 		 }
 		 
 	 }
-	 console.log(query["userID"] + " - " + ticketCounter);
+	 //console.log(query["userID"] + " - " + ticketCounter);
 
  }
  responseHolder.sort(function(a, b){
@@ -43,7 +43,7 @@ http.createServer(function (req, res) {
 	httpResp = httpResp + responseHolder[i]["link"];
 	}
  }
-  console.log(httpResp);
+  //console.log(httpResp);
   res.end(httpResp);
 }).listen(serverPort, serverURL);
 
@@ -55,10 +55,12 @@ csv()
     return data;
 })
 .on('data',function(data,index){
-//    console.log('#'+index+' '+JSON.stringify(data));
+/*
+	console.log('#'+index+' '+JSON.stringify(data));
         console.log(data["TicketID"] + " -- " + data["Assign"] + " -- " + data["DateModified"]);
         console.log(data["UserID"] + " -- " + data["StudentID"] + " -- " + data["Info"]);
         console.log("||___________________________________________________||");
+*/
         ticketHolder.push(data)
 })
 .on('end',function(count){
