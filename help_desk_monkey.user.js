@@ -1,18 +1,19 @@
 // ==UserScript==
 // @name           Help Desk Monkey
 // @namespace      http://online.academyart.edu
-// @description    Help Desk LMS helper
-// @include        http://admin.academyart.edu/admin/*
+// @description    Greasmonkey script to augment the LMS admin tools - Property of Academy of Art University
+// @include        http://admin.academyart.edu/*
 // @include        http://discussion.academyart.edu/* 
 // @require        http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js
 // ==/UserScript==
-//IP address of hd_monkey_server
+//nodeServer IP (use 'localhost' for local version)
 var serverIP = '127.0.0.1';
 var serverPort = '1337';
 
 //clear our global variables.
 var divContent = "";
-var divStyle = ' style="position:fixed;top:10px;right:0px;width:30%; height:500; padding:0;border-style:solid;border-width:6px;border-color:grey;background-color:rgba(0,0,0,255);display:none;overflow-y: scroll;" ';
+var results = "";
+var divStyle = ' style="position:fixed;top:10px;right:0px;width:30%; height:500; padding:0;border-style:solid;border-width:6px;border-color:grey;background-color:rgba(0,0,0,255);display:none;overflow-y: scroll;font-size:14pt;z-index:9;" ';
 var search = "";
 var searchterms = "";
 var terms = new Array();
@@ -28,6 +29,11 @@ var recordnumber;
 var studentID;
 var userID;
 var divToggle = false;
+var txt = document.createElement("div");
+var searchresults = document.createElement("div");
+var dateinput = document.createElement("input");
+searchresults.setAttribute("style","height:200;overflow-y:scroll");
+searchresults.innerHTML = "";
 
 function hideDiv() {
     if (divToggle === true) {
@@ -36,18 +42,60 @@ function hideDiv() {
         } else if (divToggle === false) {
         document.getElementById("hd_tickets").style.display = "inline";
         divToggle = true;    
-        }
+    }
+}
+
+function getTicketsByDate() {
+	GM_xmlhttpRequest ( {
+				method:         'GET',
+				url:            'http://' + serverIP + ':1338' + '/?date=' + dateinput.value + '&range=5' ,  	
+				onload:         function (responseDetails) {
+									results = "";
+									results = responseDetails.responseText;
+									txt.innerHTML = '<div id="hd_tickets"' + divStyle + '>' + results + '</div>';
+									divToggle = true;  
+									document.getElementById("hd_tickets").style.display = "inline";
+						}
+					});
+				
+}
+
+function getTicketsByTech() {
+        	GM_xmlhttpRequest ( {
+        	method:         'GET',
+        	url:            'http://' + serverIP + ':1337' + '/?userID=ALL' ,  	
+        	onload:         function (responseDetails) {
+          	              		results = responseDetails.responseText;
+                           		txt.innerHTML = '<div id="hd_tickets"' + divStyle + '>' + results + '</div>';
+                           		divToggle = true;  
+								document.getElementById("hd_tickets").style.display = "inline";
+                           		
+    			 	}
+                });	
+
+
+	hideDiv();
+}
+
+function searchTickets(args) {
+	console.log("Ticket's Searched with " + args);
+	GM_xmlhttpRequest ( {
+				method:         'GET',
+				url:            'http://' + serverIP + ':1337' + '/?search=' + args ,  	
+				onload:         function (responseDetails) {
+									results = "";
+									results = responseDetails.responseText;
+									searchresults.innerHTML = results;
+									//console.log(results);
+						}
+					});
+					
 }
 
 if (document.URL.slice(0, 52) === "http://discussion.academyart.edu/admin/editRecord.do") {
-    
-    
-    
+
     if (document.URL.slice(52) ==="?createNewRecord=true") {
         //New Ticket page
-        
-           
-        
     }
     else {
         //HD Ticket page
@@ -98,40 +146,40 @@ if (document.URL.slice(0, 52) === "http://discussion.academyart.edu/admin/editRe
                searchterms = searchterms + ')';
            }
            
-           var wikisearch = document.createElement("div");        
-           wikisearch.innerHTML = "";
-           wikisearch.innerHTML = '<a href="https://wiki.academyart.edu/dosearchsite.action?spaceSearch=false&queryString=' + searchterms + '" target="_blank"> Search Wiki</a>';
+           var mydiv = document.createElement("div"); 
+           var  wikisearch = window.document.createElement("a");
+           wikisearch.setAttribute("href", 'https://wiki.academyart.edu/dosearchsite.action?spaceSearch=false&queryString=' + searchterms );
+           wikisearch.textContent = "Search Wiki";
            document.getElementsByName("record_summary")[0].parentNode.appendChild(wikisearch);
            
+           
+           var  ticketsearch = window.document.createElement("a");
+           ticketsearch.setAttribute("href", '#');
+           ticketsearch.textContent = "Search Similar Tickets";
+           ticketsearch.addEventListener('click',searchTickets(summary),false);
+           mydiv.appendChild(ticketsearch);
+           document.getElementsByName("record_summary")[0].parentNode.appendChild(mydiv);
+		   mydiv.appendChild(searchresults);
            //create the Report button and format HTML for it.
-           var reportButton = document.createElement("input");
-           reportButton.setAttribute("id","generateReport");
-           reportButton.setAttribute("type","button");
-           reportButton.setAttribute("value","Generate Report");
            var hideButton = window.document.createElement("a");
            hideButton.setAttribute("href", '#');
-           hideButton.textContent = "Show/Hide Tickets";
+           hideButton.textContent = "User History";
            hideButton.addEventListener('click',hideDiv,false);           
-           buttonElems[0].appendChild(reportButton);
            buttonElems[0].appendChild(hideButton);
            //generate recent links from node server reply - divContent
            var txt = document.createElement("div");
            txt.innerHTML = '<div id="hd_tickets"' + divStyle + '>' + divContent + '</div>';
            buttonElems[0].appendChild(txt);
            divContent = "";
-           addButtonListener();
         }
     
-     
-        function addButtonListener(){
-          var button = document.getElementById("generateReport");
-          button.addEventListener('click',doMonkey,true);
-        }   
     }  //end HD Ticket code
     
     
 } else if (document.URL.slice(0, 52) === "http://discussion.academyart.edu/admin/listRecord.do") {
-        var buttonElems = document.getElementsByClassName("large_headline");
+
+		//Open Records
+		var buttonElems = document.getElementsByClassName("large_headline");
         window.addEventListener("load", function(e) {
         	GM_xmlhttpRequest ( {
         	method:         'GET',
@@ -147,30 +195,66 @@ if (document.URL.slice(0, 52) === "http://discussion.academyart.edu/admin/editRe
         function makeHTML() {
             var hideButton = window.document.createElement("a");
             hideButton.setAttribute("href", '#');
-            hideButton.textContent = "Ticket Count";
+            hideButton.textContent = "Show/Hide";
             hideButton.addEventListener('click',hideDiv,false);           
-            buttonElems[0].appendChild(hideButton);
             //generate recent links from node server reply - divContent
-            var txt = document.createElement("div");
-            txt.innerHTML = '<div id="hd_tickets"' + divStyle + '>' + divContent + '</div>';
             buttonElems[0].appendChild(txt);
+            dateinput.setAttribute("type","text");
+            dateinput.setAttribute("id","searchdate");
+            today = new Date();
+            dateinput.setAttribute("value", today.getFullYear() + "." + Number(today.getMonth() + 1) + "." + today.getDate());
+            buttonElems[0].appendChild(dateinput);
+            buttonElems[0].appendChild(hideButton);
+            buttonElems[0].appendChild(document.createElement("br"));
+            var searchbutton = document.createElement("a");
+            searchbutton.setAttribute("href", '#');
+            searchbutton.textContent = "Search by Date";
+            searchbutton.addEventListener('click',getTicketsByDate,false);
+            buttonElems[0].appendChild(searchbutton);            
+            var totals = document.createElement("a");
+            totals.setAttribute("href", '#');
+            totals.textContent = "Ticket Totals";
+            totals.addEventListener('click',getTicketsByTech,false);
+            buttonElems[0].appendChild(document.createElement("br"));
+            buttonElems[0].appendChild(totals);   
             divContent = "";
-            addButtonListener();           
+            //addButtonListener();           
              
+        }
+} else if (document.URL.slice(0,53) === "http://discussion.academyart.edu/admin/editUser/user/") {
+	
+	
+	//User Profile
+	window.addEventListener("load", function(e) {
+        	GM_xmlhttpRequest ( {
+        	method:         'GET',
+        	url:            'http://' + serverIP + ':' + serverPort + '/?userID=' + document.URL.slice(53,document.URL.indexOf("?")) ,  	
+        	onload:         function (responseDetails) {
+          	              		pageText = responseDetails.responseText;
+                           		divContent = pageText;
+                           		startHTML();
+    			 	}
+                });		
+
+        }, false);
+        
+        //take response from node server, generate HTML, and embed in page
+        function startHTML(){
+           var buttonElems = document.getElementsByClassName("large_headline");
+           //create the Report button and format HTML for it.
+           var hideButton = window.document.createElement("a");
+           hideButton.setAttribute("href", '#');
+           hideButton.textContent = "User History";
+           hideButton.addEventListener('click',hideDiv,false);           
+           buttonElems[0].appendChild(hideButton);
+           //generate recent links from node server reply - divContent
+           var txt = document.createElement("div");
+           txt.innerHTML = '<div id="hd_tickets"' + divStyle + '>' + divContent + '</div>';
+           buttonElems[0].appendChild(txt);
+           divContent = "";
         }
 }
 
-//makes a nice set of text for our Record summary page
-function returnFormatted() {
-    tempstring =  "Record: " + recordnumber + "\n" + "StudentID: " + studentID + "\n" +"Last Name: "+ lastname + "\n" + "First Name: "+ firstname + "\n" +/* "UserID: " + userID + "\n" +*/ "Email Address: "+ email + "\n" + "Phone Number: "+ phone + "\n" ;
-    tempstring += "Summary: "+ summary + "\n"; //+  "Description: "+ description + "\n";
-    return tempstring;
-}
- 
-//the JS alert for the summary of a HD Ticket page
-function doMonkey() {
-    alert(returnFormatted());
-}
 //returns a similar message:
 //Record: # 55555
 //Last Name: LastName
