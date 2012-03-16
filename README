@@ -1,0 +1,6 @@
+ *	hd_monkey_server - nodeJS server for tracking HelpDesk tickets
+ *
+ *	Use this in combination with the HelpDeskMonkey GreaseMonkey script
+ *	to augment the LMS admin tools
+ *
+ *	requires csv and url modules, available via npm
