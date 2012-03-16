@@ -6,10 +6,11 @@ var serverURL = "127.0.0.1";
 var serverPort = "1339";
 var ticketHolder = new Array();
 var responseHolder = new Array();
-var ticketCounter = 0;
-var techs = new Array();
+
+
 
 http.createServer(function (req, res) {
+  var ticketCounter = 0;
   res.writeHead(200, {'Content-Type': 'text/plain'});
   httpResp = "";
   var url_parts = url.parse(req.url, true); 
@@ -44,7 +45,6 @@ http.createServer(function (req, res) {
 		 	ticketCounter = ticketCounter + 1;
   	 	}
   	 	ticketCounter = 0;
-    //httpResp = httpResp + query["userID"] + " - " + techs[query["userID"]] + "<br />\n" ;
  }
   responseHolder.sort(function(b, a){
 	 var dateA=new Date(a.date), dateB=new Date(b.date)
@@ -59,7 +59,6 @@ http.createServer(function (req, res) {
  responseHolder = new Array();
   //console.log(httpResp);
   res.end(httpResp);
-  //clearTechs();
 }).listen(serverPort, serverURL);
 
 csv()
