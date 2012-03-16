@@ -1,24 +1,49 @@
+/*
+ *	hd_monkey_server - nodeJS server for tracking HelpDesk tickets
+ *
+ *	Use this in combination with the HelpDeskMonkey GreaseMonkey script
+ *	to augment the LMS admin tools
+ *
+ *	requires csv and url modules, available via npm
+ *
+ */
+
+//stores the text response string sent back to browser
 var httpResp = "";
+//to install the required modules with npm in
+//the same folder as this script (will generat
+//node_modules folder)
+//-- npm install csv url
 var http = require('http');
 var url = require('url');
 var csv = require('csv');
-var serverURL = "127.0.0.1";
-var serverPort = "1337";
 
+//Change the following to your address.
+//IP/DNS address that browser will connect to
+var serverURL = "127.0.0.1";
+//Port the browser will connect on.
+var serverPort = "1337";
+//filename (csv format) of ticket data
+var dataFile = "data.csv";
+
+//Array to store each ticket read from csv file
 var ticketHolder = new Array();
+//Array used to help arrange the http 
 var responseHolder = new Array();
 
+//builds the HTTP server
 http.createServer(function (req, res) {
+  //HTTP header 
   res.writeHead(200, {'Content-Type': 'text/plain'});
-//  res.end(httpResp);
+  //resets response string amd array
   httpResp = "";
-  var ticketCounter = 0;
   responseHolder= new Array();
-  var url_parts = url.parse(req.url, true); 
+  //used for total ticket count 
+  var ticketCounter = 0;
+  //split out url parts (denoted with questionmarks)
+  var url_parts = url.parse(req.url, true);
   var query = url_parts.query;
-  for (result in query) {
-	console.log(result + " - " + query[result].toString());
-  }
+
   if (query["userID"]) {
 	 //console.log(query["userID"].toString().replace(/(\r\n|\n|\r)/gm,""));
 	 for (record in ticketHolder) {
@@ -48,7 +73,7 @@ http.createServer(function (req, res) {
 }).listen(serverPort, serverURL);
 
 csv()
-.fromPath(__dirname+'/data.csv',{
+.fromPath(__dirname+'/'+dataFile,{
     columns: true
 })
 .transform(function(data){
